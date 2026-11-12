@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Virtual Lab · Bubbling Fluidized Bed Gasifier</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#1f2f4d; --navy-2:#2b3f63; --blue:#2a78d6; --blue-soft:#e6eff9;
+  --panel:#e9eef4; --card:#ffffff; --line:#d4dce6; --ink:#16202e; --ink-2:#4b5869; --muted:#7a8696;
+  --orange:#eb6834; --sand:#e9cfa4; --good:#1a8a4d; --warn:#b26b00; --bad:#c33a3a;
+  --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a; --s4:#eda100; --s5:#e87ba4; --s6:#008300; --s7:#6250d6; --s8:#e34948;
+  --radius:12px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:#f4f6f9;color:var(--ink);font:14px/1.45 Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+button,input,select{font:inherit}
+.mono{font-family:"JetBrains Mono",ui-monospace,monospace}
+
+/* ---------- header ---------- */
+header.top{background:linear-gradient(90deg,var(--navy),var(--navy-2));color:#fff;padding:14px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;position:sticky;top:0;z-index:20;box-shadow:0 2px 10px rgba(0,0,0,.15)}
+.logo{width:42px;height:42px;border-radius:10px;background:rgba(255,255,255,.12);display:grid;place-items:center;flex:none}
+.titles h1{margin:0;font-size:19px;font-weight:700;letter-spacing:.2px}
+.titles p{margin:2px 0 0;font-size:12.5px;opacity:.8}
+.hdr-right{margin-left:auto;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.hbtn{background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.25);border-radius:8px;padding:6px 12px;cursor:pointer}
+.hbtn:hover{background:rgba(255,255,255,.22)}
+.hbtn.round{width:32px;height:32px;padding:0;border-radius:50%;font-weight:700}
+.engine{font-size:12px;display:flex;align-items:center;gap:6px;background:rgba(0,0,0,.18);padding:5px 10px;border-radius:20px}
+.dot{width:9px;height:9px;border-radius:50%;background:#f0b429;box-shadow:0 0 0 3px rgba(240,180,41,.25)}
+.dot.ok{background:#3ccf7a;box-shadow:0 0 0 3px rgba(60,207,122,.25)}
+.dot.err{background:#ff6b6b}
+
+main{max-width:1480px;margin:0 auto;padding:20px 20px 60px}
+
+/* ---------- guided practice ---------- */
+.intro{display:grid;grid-template-columns:1.1fr 2fr;gap:20px;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px;margin-bottom:20px}
+.intro h2{margin:0 0 6px;font-size:18px}
+.intro p{margin:0;color:var(--ink-2)}
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.step{background:var(--panel);border-radius:10px;padding:10px 12px;display:flex;gap:10px}
+.step .n{flex:none;width:26px;height:26px;border-radius:50%;background:var(--navy);color:#fff;display:grid;place-items:center;font-weight:700;font-size:13px}
+.step b{display:block;font-size:13px}
+.step span{font-size:12px;color:var(--ink-2)}
+
+/* ---------- sections ---------- */
+.sec{background:var(--panel);border-radius:var(--radius);padding:14px;margin-bottom:20px}
+.sec-h{display:flex;align-items:center;gap:10px;margin:2px 4px 12px}
+.sec-h .n{width:30px;height:30px;border-radius:50%;background:var(--navy);color:#fff;display:grid;place-items:center;font-weight:700}
+.sec-h h2{margin:0;font-size:17px}
+.sec-h .aside{margin-left:auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.card h3{margin:0 0 10px;font-size:14px;display:flex;align-items:center;gap:8px}
+.card h3 .ic{width:24px;height:24px;border-radius:6px;background:var(--blue-soft);display:grid;place-items:center;color:var(--blue);font-size:13px}
+.sub{font-size:12px;color:var(--muted);margin:-6px 0 10px}
+
+.lab{display:grid;grid-template-columns:minmax(380px,1.05fr) minmax(320px,.8fr) minmax(380px,1.15fr);gap:16px;align-items:start}
+@media (max-width:1250px){.lab{grid-template-columns:1fr 1fr}.lab .col-sol{grid-column:1/-1}}
+@media (max-width:820px){.lab{grid-template-columns:1fr}.intro{grid-template-columns:1fr}.steps{grid-template-columns:1fr 1fr}}
+.col{display:flex;flex-direction:column;gap:12px}
+
+/* form */
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px 14px}
+.field{display:flex;flex-direction:column;gap:3px}
+.field label{font-size:12px;color:var(--ink-2);font-weight:500}
+.field .unit{color:var(--muted);font-weight:400}
+.inp{border:1px solid var(--line);border-radius:7px;padding:6px 8px;background:#fbfcfe;width:100%;outline:none}
+.inp:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(42,120,214,.15)}
+.slider-row{display:flex;align-items:center;gap:10px}
+.slider-row input[type=range]{flex:1;accent-color:var(--blue)}
+.slider-row .val{min-width:70px;text-align:right;font-weight:600}
+.pills{display:flex;gap:6px;flex-wrap:wrap}
+.pill{border:1px solid var(--line);background:#fff;border-radius:20px;padding:4px 10px;font-size:12px;cursor:pointer}
+.pill:hover,.pill.on{border-color:var(--blue);color:var(--blue);background:var(--blue-soft)}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.seg button{border:0;background:#fff;padding:5px 10px;cursor:pointer;font-size:12px}
+.seg button.on{background:var(--navy);color:#fff}
+details.adv{margin-top:4px}
+details.adv summary{cursor:pointer;font-weight:600;font-size:13px;color:var(--navy);padding:4px 0}
+table.ft{width:100%;border-collapse:collapse;font-size:12.5px}
+table.ft th{font-weight:600;color:var(--ink-2);text-align:right;padding:4px 6px;border-bottom:1px solid var(--line)}
+table.ft th:first-child,table.ft td:first-child{text-align:left}
+table.ft td{padding:3px 6px;border-bottom:1px solid #eef1f5;text-align:right}
+table.ft input{width:74px;text-align:right;border:1px solid var(--line);border-radius:5px;padding:3px 5px;background:#fbfcfe}
+table.ft tr.sum td{font-weight:600;border-top:1px solid var(--line)}
+.ok-t{color:var(--good)} .warn-t{color:var(--warn)} .bad-t{color:var(--bad)}
+.grp{font-size:11px;letter-spacing:.6px;text-transform:uppercase;color:var(--muted);font-weight:600;padding-top:8px!important}
+
+/* reactor */
+.reactor-card{position:relative}
+#reactorSvg{width:100%;height:auto;display:block}
+.live{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
+.gauge{background:var(--panel);border-radius:8px;padding:8px 10px}
+.gauge .k{font-size:10.5px;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);font-weight:600}
+.gauge .v{font-size:17px;font-weight:700}
+.gauge .u{font-size:11px;color:var(--ink-2);font-weight:500}
+.runbar{display:flex;gap:10px;margin-top:12px}
+.btn{border:0;border-radius:9px;padding:10px 16px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:8px;justify-content:center}
+.btn.primary{background:var(--blue);color:#fff;flex:1}
+.btn.primary:hover{background:#1f66bd}
+.btn.primary:disabled{background:#9db8d8;cursor:wait}
+.btn.ghost{background:#fff;border:1px solid var(--line);color:var(--ink)}
+.btn.ghost:hover{border-color:var(--blue);color:var(--blue)}
+.btn.small{padding:6px 11px;font-size:12.5px}
+.spinner{width:14px;height:14px;border:2px solid rgba(255,255,255,.5);border-top-color:#fff;border-radius:50%;animation:spin .8s linear infinite;display:none}
+.busy .spinner{display:inline-block}
+@keyframes spin{to{transform:rotate(360deg)}}
+.subroutines{display:grid;gap:8px}
+.sr{border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.sr .h{background:var(--blue-soft);padding:6px 10px;font-weight:600;font-size:12.5px;color:var(--navy)}
+.sr ul{margin:6px 0 8px;padding-left:28px;font-size:12px;color:var(--ink-2)}
+
+/* outputs */
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.kpi .k{font-size:11px;color:var(--ink-2);font-weight:500}
+.kpi .v{font-size:22px;font-weight:700;letter-spacing:-.3px;margin-top:2px}
+.kpi .u{font-size:12px;color:var(--muted);font-weight:500;margin-left:3px}
+.kpi .d{font-size:11px;color:var(--muted)}
+.empty{color:var(--muted);font-size:13px;text-align:center;padding:22px 10px}
+table.rt{width:100%;border-collapse:collapse;font-size:12.5px}
+table.rt td{padding:4px 4px;border-bottom:1px solid #eef1f5}
+table.rt td:last-child{white-space:nowrap;text-align:right;font-weight:600;font-variant-numeric:tabular-nums}
+table.rt td .u{color:var(--muted);font-weight:400;margin-left:3px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:700px){.two{grid-template-columns:1fr}.kpis{grid-template-columns:1fr 1fr}}
+.warnbox{background:#fff6e6;border:1px solid #f1d29a;color:#7a4b00;border-radius:8px;padding:8px 12px;font-size:12.5px;margin-bottom:10px}
+.warnbox ul{margin:4px 0 0;padding-left:18px}
+.errbox{background:#fdecec;border:1px solid #f2b8b8;color:#8a1f1f;border-radius:8px;padding:8px 12px;font-size:12.5px}
+.chart{width:100%;position:relative}
+.chart svg{width:100%;height:auto;display:block;overflow:visible}
+.tip{position:absolute;pointer-events:none;background:#16202e;color:#fff;font-size:12px;padding:6px 9px;border-radius:6px;white-space:nowrap;transform:translate(-50%,-110%);opacity:0;transition:opacity .1s;z-index:5}
+.legend{display:flex;gap:12px;flex-wrap:wrap;font-size:12px;color:var(--ink-2);margin:4px 0 6px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+
+/* log */
+.tablewrap{overflow:auto;background:#fff;border:1px solid var(--line);border-radius:10px}
+table.log{border-collapse:collapse;font-size:12.5px;width:100%;min-width:1100px}
+table.log th{position:sticky;top:0;background:var(--navy);color:#fff;font-weight:600;padding:7px 8px;text-align:right;white-space:nowrap}
+table.log th:first-child,table.log td:first-child{text-align:center}
+table.log td{padding:6px 8px;text-align:right;border-bottom:1px solid #eef1f5;font-variant-numeric:tabular-nums;white-space:nowrap}
+table.log tr:nth-child(even) td{background:#f8fafc}
+.progress{height:6px;background:#dfe6ee;border-radius:4px;overflow:hidden;margin-top:8px}
+.progress div{height:100%;width:0;background:var(--blue);transition:width .3s}
+.notes{columns:2;column-gap:24px;font-size:13px;color:var(--ink-2)}
+.notes p{margin:0 0 10px;break-inside:avoid}
+@media (max-width:820px){.notes{columns:1}}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:9px 16px;border-radius:8px;font-size:13px;opacity:0;transition:opacity .2s;z-index:50;pointer-events:none}
+.modal{position:fixed;inset:0;background:rgba(10,20,35,.45);display:none;align-items:center;justify-content:center;z-index:40;padding:20px}
+.modal.on{display:flex}
+.modal .box{background:#fff;border-radius:14px;max-width:720px;width:100%;max-height:85vh;overflow:auto;padding:22px 24px}
+.modal h3{margin-top:0}
+footer.inst{background:linear-gradient(90deg,var(--navy),var(--navy-2));color:#dfe6f0;text-align:center;font-size:12.5px;padding:26px 16px 18px;border-radius:var(--radius);margin-top:10px}
+footer.inst .logos{display:flex;justify-content:center;align-items:center;gap:56px;flex-wrap:wrap;margin-bottom:14px}
+footer.inst img{height:52px;width:auto;display:block}
+footer.inst p{margin:2px 0}
+footer.inst .fine{color:#9fb0c6;font-size:11.5px}
+
+/* reactor animation */
+.bub{animation:rise var(--dur,2.4s) linear infinite}
+@keyframes rise{0%{transform:translateY(0);opacity:0}10%{opacity:.9}90%{opacity:.9}100%{transform:translateY(-118px);opacity:0}}
+.gasdot{animation:up 3s linear infinite}
+@keyframes up{0%{transform:translateY(0);opacity:0}15%{opacity:.8}100%{transform:translateY(-250px);opacity:0}}
+.paused .bub,.paused .gasdot{animation-play-state:paused}
+
+@media print{
+  header.top{position:static}
+  .no-print,.lab .col-in,.runbar,details,.hbtn{display:none!important}
+  .lab{grid-template-columns:1fr}
+  body{background:#fff}
+  .sec{background:#fff;border:1px solid #ccc}
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="logo" aria-hidden="true">
+    <svg width="26" height="26" viewBox="0 0 26 26" fill="none" stroke="#fff" stroke-width="1.8"><rect x="8" y="2" width="10" height="22" rx="5"/><path d="M8.5 15h9" /><circle cx="11.5" cy="19" r="1.4" fill="#fff"/><circle cx="15" cy="17.5" r="1" fill="#fff"/><path d="M13 2V0"/></svg>
+  </div>
+  <div class="titles">
+    <h1>Virtual Lab · Bubbling Fluidized Bed Gasifier</h1>
+    <p>Air co-gasification of olive pomace and RDF · two-zone kinetic model (MODEL_27) with techno-economic and carbon-footprint assessment</p>
+  </div>
+  <div class="hdr-right">
+    <div class="engine" title="The model runs in your browser (Python via Pyodide)"><span class="dot" id="engDot"></span><span id="engTxt">Loading model engine…</span></div>
+    <button class="hbtn" id="btnReset">Reset lab</button>
+    <button class="hbtn round" id="btnHelp" aria-label="Help">?</button>
+  </div>
+</header>
+
+<main>
+<section class="intro">
+  <div>
+    <h2>BFB gasifier</h2>
+    <p>Define the feedstock, its characterization, the operating conditions and the reactor, then run the kinetic model. It returns the syngas composition and quality, the energy balance of the bed, the plant sizing for the heat demand, and the economic and carbon-footprint indicators.</p>
+  </div>
+  <div class="steps">
+    <div class="step"><div class="n">1</div><div><b>Define the fuel</b><span>Set the RDF fraction and, if needed, edit the proximate and ultimate analyses.</span></div></div>
+    <div class="step"><div class="n">2</div><div><b>Set the test</b><span>Choose bed temperature, air (ER or flow), feed rate, pressure and the reactor data.</span></div></div>
+    <div class="step"><div class="n">3</div><div><b>Run and record</b><span>Run the model, read the outputs and add the run to the data table.</span></div></div>
+  </div>
+</section>
+
+<div class="lab">
+<!-- =============== 1. INPUTS =============== -->
+<section class="sec col-in">
+  <div class="sec-h"><div class="n">1</div><h2>Inputs</h2>
+    <div class="aside"><span style="font-size:12px;color:var(--ink-2)">Preset:</span>
+      <div class="pills"><button class="pill on" data-preset="base" title="Single test at 700 °C, ER 0.257, 30 % RDF (techno-economic base case)">Base case 700 °C</button><button class="pill" data-preset="opt" title="1100 °C, ER 0.35, 30 % RDF">Optimum</button></div></div>
+  </div>
+  <div class="col">
+    <div class="card">
+      <h3><span class="ic">🌿</span>Feedstock</h3>
+      <p class="sub">Olive pomace + RDF blend (mass fraction, as received)</p>
+      <div class="field"><label>RDF fraction in the blend <span class="unit">(wt%)</span></label>
+        <div class="slider-row"><input type="range" id="x_rdf" min="0" max="100" step="5" value="30"><span class="val mono" id="x_rdf_v">30 %</span></div>
+        <div class="slider-row" style="font-size:12px;color:var(--ink-2)"><span>Olive pomace: <b id="x_op_v">70 %</b></span><span style="margin-left:auto">Explored range: 10–50 %</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3><span class="ic">⚛</span>Fuel characterization</h3>
+      <p class="sub">Defaults: Terrados-Cristos et al. (2026), Table 3. Edit any value; the model normalizes the ultimate analysis to 100 %.</p>
+      <table class="ft" id="fuelTable">
+        <thead><tr><th>Property</th><th>Olive pomace</th><th>RDF</th><th>Blend</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <h3><span class="ic">🌡</span>Operating conditions</h3>
+      <div class="field" style="margin-bottom:10px"><label>Bed temperature <span class="unit">(°C)</span></label>
+        <div class="slider-row"><input type="range" id="T" min="600" max="1150" step="10" value="700"><span class="val mono" id="T_v">700 °C</span></div></div>
+      <div class="field" style="margin-bottom:6px"><label style="display:flex;align-items:center;gap:8px">Air supply
+        <span class="seg" id="airMode"><button data-m="ER" class="on">Equivalence ratio</button><button data-m="flow">Air flow</button></span></label></div>
+      <div id="erBox" class="field" style="margin-bottom:10px"><label>Equivalence ratio, ER <span class="unit">(–)</span></label>
+        <div class="slider-row"><input type="range" id="ER" min="0.15" max="0.45" step="0.001" value="0.257"><span class="val mono" id="ER_v">0.257</span></div>
+        <div style="font-size:12px;color:var(--ink-2)">Air flow ≈ <b id="air_calc">–</b> Nm³/h</div></div>
+      <div id="flowBox" class="field" style="margin-bottom:10px;display:none"><label>Air flow <span class="unit">(Nm³/h, 0 °C, 1 atm)</span></label>
+        <input class="inp" type="number" id="air" value="57.6" step="0.1" min="1">
+        <div style="font-size:12px;color:var(--ink-2)">ER ≈ <b id="er_calc">–</b></div></div>
+      <div class="fgrid">
+        <div class="field"><label>Feed rate <span class="unit">(kg/h)</span></label><input class="inp" type="number" id="feed" value="50" step="1" min="1"></div>
+        <div class="field"><label>Pressure, gauge <span class="unit">(kPa)</span></label><input class="inp" type="number" id="P" value="-30" step="0.5"></div>
+        <div class="field"><label>Air temperature <span class="unit">(°C)</span></label><input class="inp" type="number" id="air_T" value="25" step="1"></div>
+        <div class="field"><label>Stoichiometric air <span class="unit">(Nm³/kg)</span></label><input class="inp" id="air_st" disabled></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3><span class="ic">⚗</span>Reactor and bed</h3>
+      <div class="fgrid">
+        <div class="field"><label>Inner diameter <span class="unit">(m)</span></label><input class="inp" type="number" id="D" value="0.5" step="0.01" min="0.05"></div>
+        <div class="field"><label>Total height <span class="unit">(m)</span></label><input class="inp" type="number" id="H" value="4.55" step="0.05" min="0.5"></div>
+        <div class="field"><label>Bed material</label>
+          <select class="inp" id="material"><option value="dolomite">Dolomite (catalytic)</option><option value="silica_sand">Silica sand</option><option value="olivine">Olivine</option></select></div>
+        <div class="field"><label>Bed inventory <span class="unit">(kg)</span></label><input class="inp" type="number" id="W" value="50" step="1" min="1"></div>
+        <div class="field"><label>Particle size <span class="unit">(µm)</span></label><input class="inp" type="number" id="dp_um" value="1000" step="10" min="50"></div>
+        <div class="field"><label>Particle density <span class="unit">(kg/m³)</span></label><input class="inp" type="number" id="rho_p" value="2850" step="10"></div>
+        <div class="field"><label>Voidage at min. fluidization <span class="unit">(–)</span></label><input class="inp" type="number" id="eps_mf" value="0.42" step="0.01" min="0.3" max="0.7"></div>
+        <div class="field"><label>Distributor orifices <span class="unit">(–)</span></label><input class="inp" type="number" id="n_or" value="36" step="1" min="1"></div>
+        <div class="field"><label>Char residence time <span class="unit">(s)</span></label><input class="inp" type="number" id="tau_char" value="7200" step="100" min="10"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3><span class="ic">€</span>Plant, economics and footprint</h3>
+      <div class="fgrid">
+        <div class="field"><label>Heat demand <span class="unit">(kWth)</span></label><input class="inp" type="number" id="P_design_kWth" value="209.8" step="0.1"></div>
+        <div class="field"><label>Operating hours <span class="unit">(h/y)</span></label><input class="inp" type="number" id="hours" value="7200" step="100"></div>
+      </div>
+      <details class="adv"><summary>Economic and LCA parameters</summary>
+        <div class="fgrid" id="econGrid" style="margin-top:8px"></div>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- =============== 2+3. MODEL =============== -->
+<section class="sec col-mod">
+  <div class="sec-h"><div class="n">2</div><h2>Gasification model</h2></div>
+  <div class="col">
+    <div class="card reactor-card">
+      <svg id="reactorSvg" viewBox="0 0 340 430" role="img" aria-label="Bubbling fluidized bed reactor schematic"></svg>
+      <div class="live">
+        <div class="gauge"><div class="k">Bed T</div><div class="v mono" id="g_T">700<span class="u"> °C</span></div></div>
+        <div class="gauge"><div class="k">U₀ / U<sub>mf</sub></div><div class="v mono" id="g_U">–</div></div>
+        <div class="gauge"><div class="k">Syngas</div><div class="v mono" id="g_Q">–<span class="u"> Nm³/h</span></div></div>
+      </div>
+      <div class="runbar">
+        <button class="btn primary" id="btnRun" disabled><span class="spinner"></span><span id="runTxt">Loading model…</span></button>
+        <button class="btn ghost" id="btnRecord" disabled title="Add the current run to the data table">＋ Record run</button>
+      </div>
+      <div class="progress" id="runProg" style="display:none"><div></div></div>
+      <div style="font-size:11.5px;color:var(--muted);margin-top:8px" id="runInfo">The full kinetic model runs in your browser; one simulation takes from a few seconds up to ~30 s depending on the device.</div>
+    </div>
+    <div class="sec-h" style="margin-top:6px"><div class="n">3</div><h2>Model subroutines</h2></div>
+    <div class="subroutines">
+      <div class="sr"><div class="h">Devolatilization</div><ul><li>Instantaneous release of volatiles</li><li>C/H/O elemental closure (no molecular H₂ closure)</li><li>Fixed carbon to the char inventory</li></ul></div>
+      <div class="sr"><div class="h">Bubbling bed (two zones)</div><ul><li>Hydrodynamics: U<sub>mf</sub> (Wen–Yu), bubble size (Mori–Wen) and fraction</li><li>Bubble–emulsion gas interchange (Kunii–Levenspiel)</li><li>Emulsion: volatiles, char and catalytic tar reactions</li><li>Bubbles: homogeneous oxidation</li></ul></div>
+      <div class="sr"><div class="h">Freeboard (plug flow)</div><ul><li>Isothermal PFR, homogeneous kinetics</li><li>Kinetic, reversible water–gas shift</li></ul></div>
+      <div class="sr"><div class="h">Reaction network</div><ul><li>26 reactions: 19 homogeneous, 3 char, 4 on dolomite</li><li>Each traced to its primary source; gas kinetics not fitted</li><li>Dolomite: apparent kinetics (pore diffusion), activity calibrated on the reference-case tar</li></ul></div>
+    </div>
+  </div>
+</section>
+
+<!-- =============== 4. SOLUTION =============== -->
+<section class="sec col-sol">
+  <div class="sec-h"><div class="n">4</div><h2>Model solution</h2>
+    <div class="aside no-print"><button class="btn ghost small" id="btnPrint">Print PDF</button></div></div>
+  <div class="col" id="solution">
+    <div class="card"><div class="empty" id="emptyMsg">Run the model to see the outputs.</div>
+      <div id="solBody" style="display:none">
+        <div id="warns"></div>
+        <h3 style="margin-top:0"><span class="ic">◎</span>Gas composition and performance</h3>
+        <div class="kpis" id="kpiGas"></div>
+        <div style="display:flex;align-items:center;margin:14px 0 2px">
+          <b style="font-size:13px">Syngas composition</b>
+          <span class="seg" id="compBasis" style="margin-left:auto"><button data-b="y" class="on">Dry</button><button data-b="y_nfree">Dry, N₂-free</button><button data-b="y_wet">Wet</button></span>
+        </div>
+        <div class="chart" id="chComp"></div>
+        <div class="two" style="margin-top:8px">
+          <div><b style="font-size:13px">Tar and solids</b><table class="rt" id="tTar"></table></div>
+          <div><b style="font-size:13px">Conversion and C/H/O/N closure</b><table class="rt" id="tClos"></table></div>
+        </div>
+      </div>
+    </div>
+    <div class="card" id="cardEnergy" style="display:none">
+      <h3><span class="ic">🔥</span>Energy balance of the bed and heat supply</h3>
+      <div class="two"><table class="rt" id="tEnergy"></table><table class="rt" id="tHyd"></table></div>
+    </div>
+    <div class="card" id="cardTea" style="display:none">
+      <h3><span class="ic">€</span>Techno-economic assessment and carbon footprint</h3>
+      <div class="kpis" id="kpiTea"></div>
+      <div class="two" style="margin-top:12px">
+        <div><b style="font-size:13px">LCOH breakdown</b><div class="chart" id="chLcoh"></div></div>
+        <div><b style="font-size:13px">GWP100 contributions</b><div class="chart" id="chGwp"></div></div>
+      </div>
+      <table class="rt" id="tTea" style="margin-top:8px"></table>
+    </div>
+  </div>
+</section>
+</div>
+
+<!-- =============== 5. PARAMETRIC STUDY =============== -->
+<section class="sec">
+  <div class="sec-h"><div class="n">5</div><h2>Parametric study</h2></div>
+  <div class="card">
+    <div class="fgrid" style="grid-template-columns:repeat(5,minmax(120px,1fr));align-items:end">
+      <div class="field"><label>Variable</label><select class="inp" id="swVar"><option value="T">Bed temperature (°C)</option><option value="ER">Equivalence ratio</option><option value="x_rdf">RDF fraction (%)</option></select></div>
+      <div class="field"><label>From</label><input class="inp" type="number" id="swFrom" value="700"></div>
+      <div class="field"><label>To</label><input class="inp" type="number" id="swTo" value="1100"></div>
+      <div class="field"><label>Points</label><input class="inp" type="number" id="swN" value="5" min="2" max="15"></div>
+      <button class="btn primary" id="btnSweep" disabled><span class="spinner"></span><span>Run sweep</span></button>
+    </div>
+    <p class="sub" style="margin:8px 0 0">All other inputs are kept as set in panel 1. Each point is a full simulation; every point is also added to the data table.</p>
+    <div class="progress" id="swProg" style="display:none"><div></div></div>
+    <div style="display:flex;align-items:center;margin-top:12px;gap:10px;flex-wrap:wrap">
+      <b style="font-size:13px">Plot</b>
+      <select class="inp" id="swMetric" style="width:auto">
+        <option value="comp">Composition: H₂, CO, CO₂, CH₄ (vol%, dry)</option>
+        <option value="LHV">Syngas LHV (MJ/Nm³)</option><option value="CGE">Cold gas efficiency (%)</option>
+        <option value="tar">Tar yield (g/kg fuel)</option><option value="NPV">NPV (k€)</option>
+        <option value="LCOH">LCOH (€/MWh)</option><option value="GWP">GWP100 (kg CO₂-eq/MJ)</option>
+      </select>
+    </div>
+    <div class="chart" id="chSweep"><div class="empty">No sweep yet.</div></div>
+  </div>
+</section>
+
+<!-- =============== 6. DATA TABLE =============== -->
+<section class="sec">
+  <div class="sec-h"><div class="n">6</div><h2>Recorded runs</h2>
+    <div class="aside no-print"><span id="nRuns" style="font-size:12px;color:var(--ink-2)">0 runs</span>
+      <button class="btn ghost small" id="btnCsv">Copy as CSV</button><button class="btn ghost small" id="btnClear">Clear</button></div></div>
+  <div class="tablewrap"><table class="log" id="logTable"><thead></thead><tbody></tbody></table></div>
+</section>
+
+<!-- =============== 7. NOTES =============== -->
+<section class="sec">
+  <div class="sec-h"><div class="n">7</div><h2>About the model</h2></div>
+  <div class="card" style="font-size:13px;color:var(--ink-2)">
+    <p style="margin:0 0 8px">One-dimensional kinetic model of air gasification in a bubbling fluidized bed: two-zone bed (bubble and emulsion phases, Kunii–Levenspiel interchange), plug-flow freeboard and a 26-reaction network traced to primary sources. The gas-phase kinetics are not fitted; only the activity of the in-bed dolomite is calibrated on the tar yields of the reference case. The plant is sized for the heat demand, and the economics (NPV, IRR, LCOH) and GWP100 follow from the predicted syngas. The Python code runs in your browser.</p>
+    <p style="margin:0"><b>Use with care:</b> the bed temperature is imposed, tar yields are calibrated only for dolomite beds of the reference case and are indicative elsewhere, and results far from the conditions of the validation (700–1100 °C, ER 0.2–0.4) are extrapolations. Source: Chuquín-Vasco, D., Lo-Iacono-Ferreira, V. G., Terrados-Cristos, M., Carmo-Calado, L., Torregrosa-López, J. I. Open-source kinetic modeling of olive pomace–RDF co-gasification in a bubbling fluidized bed: validation, techno-economic and carbon-footprint assessment. <i>Biomass and Bioenergy</i> (submitted).</p>
+  </div>
+</section>
+<footer class="inst">
+  <div class="logos">
+    <a href="https://www.upv.es/" target="_blank" rel="noopener"><img src="__LOGO_UPV__" alt="Universitat Politècnica de València" onerror="this.parentNode.style.display='none'"></a>
+    <a href="https://www.prins.upv.es/" target="_blank" rel="noopener"><img src="__LOGO_PRINS__" alt="PRINS – Project Management, Innovation and Sustainability Research Center" onerror="this.parentNode.style.display='none'"></a>
+  </div>
+  <p>Project Management, Innovation and Sustainability Research Center (PRINS) · Universitat Politècnica de València – Alcoy Campus</p>
+  <p class="fine">Virtual BFB gasification lab · results are computed with the MODEL_27 code (formulation B) in the browser.</p>
+</footer>
+</main>
+
+<div class="modal" id="helpModal"><div class="box">
+  <h3>How to use the lab</h3>
+  <ol>
+    <li>Wait until the engine indicator turns green (“Model ready”). The first load downloads Python, NumPy and SciPy (~30 MB) and is cached afterwards.</li>
+    <li>Choose a preset or set the inputs in panel <b>1</b>. In the fuel table, the ultimate analysis is on a dry basis (wt%) and the proximate analysis as received (wt%).</li>
+    <li>Press <b>Run model</b>. Outputs appear in panel <b>4</b>; warnings flag inputs outside the validated window.</li>
+    <li>Press <b>Record run</b> to add it to the data table (panel <b>6</b>), which you can copy as CSV or print.</li>
+    <li>Use panel <b>5</b> to sweep temperature, ER or RDF fraction.</li>
+  </ol>
+  <p style="color:var(--ink-2);font-size:13px">ER is defined on the elemental basis: ER = air / (stoichiometric air × feed rate). Gas volumes at 0 °C and 1 atm. Dry composition is tar-free and includes N₂.</p>
+  <div style="text-align:right"><button class="btn primary" style="flex:none" id="btnHelpClose">Close</button></div>
+</div></div>
+<div class="toast" id="toast"></div>
+
+<script type="text/plain" id="py-core">__PY_CORE__</script>
+<script type="text/plain" id="py-api">__PY_API__</script>
+<script type="application/json" id="js-net">__NET_JSON__</script>
+<script type="application/json" id="js-reg">__REG_JSON__</script>
+
+<script>
+"use strict";
+const PYODIDE_URL = "https://cdn.jsdelivr.net/pyodide/v0.27.7/full/";
+const $ = id => document.getElementById(id);
+const fmt = (v, d = 2) => (v === null || v === undefined || !isFinite(v)) ? "–" : Number(v).toLocaleString("en-US", {minimumFractionDigits: d, maximumFractionDigits: d});
+function toast(msg){const t=$("toast");t.textContent=msg;t.style.opacity=1;clearTimeout(toast._t);toast._t=setTimeout(()=>t.style.opacity=0,2200);}
+
+/* ------------------------------------------------------------------ defaults */
+const FUEL_DEF = {
+  op:  {C:52.1,H:6.7,N:3.2,S:0.0,O:30.3,Ash:7.7,M:9.4,VM:66.5,FC:16.4,ash_ar:7.7,HHV:20.5},
+  rdf: {C:35.7,H:6.4,N:0.2,S:0.0,O:35.3,Ash:26.2,M:0.6,VM:64.7,FC:8.5,ash_ar:26.2,HHV:15.7}
+};
+const FUEL_ROWS = [
+  ["grp","Ultimate analysis (wt%, dry)"],["C","C"],["H","H"],["N","N"],["S","S"],["O","O"],["Ash","Ash"],["sumU","Sum"],
+  ["grp","Proximate analysis (wt%, as received)"],["M","Moisture"],["VM","Volatile matter"],["FC","Fixed carbon"],["ash_ar","Ash"],["sumP","Sum"],
+  ["grp","Heating value"],["HHV","HHV (MJ/kg, as received)"]
+];
+const ECON = [
+  ["capex_spec","Specific CAPEX","€/kWth",1087],["om_frac","O&M (fraction of CAPEX per year)","–",0.05],
+  ["discount_rate","Discount rate","–",0.08],["lifetime","Plant lifetime","years",15],
+  ["pomace_cost","Olive pomace cost","€/t",30],["rdf_avoided_cost","Avoided RDF landfill fee","€/t",35],
+  ["ng_price","Natural gas price","€/MWh",48.1],["eta_NG","Natural gas boiler efficiency","–",0.90],
+  ["ets_price","EU ETS price","€/t CO₂",75],["EF_NG_direct","NG direct emission factor","t CO₂/MWh",0.202],
+  ["boiler_eff","Syngas boiler efficiency","–",0.80],["elec_price","Electricity price","€/MWh",133],
+  ["elec_kWh_per_MJ","Electricity use (pretreatment)","kWh/MJ",0.007],["grid_EF","Grid emission factor","kg CO₂-eq/kWh",0.166],
+  ["rdf_fossil_C_frac","Fossil carbon share of RDF","–",0.78],["CH4_slip","CH₄ slip","kg CH₄/MJ",0.0001],
+  ["GWP_CH4","GWP100 of fossil CH₄ (slip)","kg CO₂-eq/kg",29.8],["GWP_CH4_biogenic","GWP100 of biogenic CH₄ (landfill)","kg CO₂-eq/kg",27.0],["NG_reference","GWP100 of NG heat (reference)","kg CO₂-eq/MJ",0.070]
+];
+const REACT_DEF = {D:0.5,H:4.55,W:50,material:"dolomite",dp_um:1000,rho_p:2850,eps_mf:0.42,n_or:36,tau_char:7200};
+const PRESETS = {
+  base:{x:30,T:700,ER:0.257,feed:50,P:-30},
+  opt: {x:30,T:1100,ER:0.35,feed:50,P:-30}
+};
+const RHO_BY_MAT = {dolomite:2850, silica_sand:2650, olivine:2900};
+
+/* ------------------------------------------------------------------ fuel table */
+function buildFuelTable(){
+  const tb = $("fuelTable").querySelector("tbody"); tb.innerHTML = "";
+  for (const [k, lab] of FUEL_ROWS){
+    const tr = document.createElement("tr");
+    if (k === "grp"){ tr.innerHTML = `<td colspan="4" class="grp">${lab}</td>`; }
+    else if (k.startsWith("sum")){ tr.className="sum"; tr.innerHTML = `<td>${lab}</td><td id="${k}_op"></td><td id="${k}_rdf"></td><td id="${k}_bl"></td>`; }
+    else {
+      tr.innerHTML = `<td>${lab}</td><td><input type="number" step="0.1" data-c="op" data-k="${k}" value="${FUEL_DEF.op[k]}"></td>`+
+                     `<td><input type="number" step="0.1" data-c="rdf" data-k="${k}" value="${FUEL_DEF.rdf[k]}"></td><td id="bl_${k}"></td>`;
+    }
+    tb.appendChild(tr);
+  }
+  tb.querySelectorAll("input").forEach(i => i.addEventListener("input", updateDerived));
+}
+function getFuel(){
+  const f = {op:{}, rdf:{}};
+  $("fuelTable").querySelectorAll("input").forEach(i => f[i.dataset.c][i.dataset.k] = parseFloat(i.value) || 0);
+  return f;
+}
+function stoichAir(f, x){
+  // stoichiometric dry air, Nm3 per kg fuel as received (same formula as the model)
+  const AW = {C:12.011,H:1.008,O:15.999,S:32.06}; let o2 = 0;
+  for (const [c, w] of [["op",1-x],["rdf",x]]){
+    const d = f[c]; const tot = d.C+d.H+d.N+d.S+d.O+d.Ash; const dry = w*(1-d.M/100);
+    const n = e => dry*(d[e]/tot)/AW[e]*1000;
+    o2 += n("C") + n("H")/4 + n("S") - n("O")/2;
+  }
+  return o2/0.21*0.0224141;   // mol/kg -> Nm3/kg (Nm3 = 44.615 mol)
+}
+function sumClass(s){ return Math.abs(s-100) <= 0.5 ? "ok-t" : (Math.abs(s-100) <= 2 ? "warn-t" : "bad-t"); }
+function updateDerived(){
+  const x = +$("x_rdf").value/100, f = getFuel();
+  $("x_rdf_v").textContent = `${Math.round(x*100)} %`; $("x_op_v").textContent = `${Math.round((1-x)*100)} %`;
+  for (const [k] of FUEL_ROWS){
+    if (k==="grp"||k.startsWith("sum")) continue;
+    $("bl_"+k).textContent = fmt((1-x)*f.op[k] + x*f.rdf[k], k==="HHV"?2:1);
+  }
+  for (const c of ["op","rdf","bl"]){
+    const g = c==="bl" ? (k => (1-x)*f.op[k]+x*f.rdf[k]) : (k => f[c][k]);
+    const su = ["C","H","N","S","O","Ash"].reduce((a,k)=>a+g(k),0), sp = ["M","VM","FC","ash_ar"].reduce((a,k)=>a+g(k),0);
+    const eu = $("sumU_"+c), ep = $("sumP_"+c);
+    eu.textContent = fmt(su,1); eu.className = Math.abs(su-100) <= 5 ? (Math.abs(su-100) <= 0.5 ? "ok-t" : "warn-t") : "bad-t"; ep.textContent = fmt(sp,1); ep.className = sumClass(sp);
+  }
+  const ast = stoichAir(f, x); $("air_st").value = fmt(ast,3);
+  const feed = +$("feed").value || 0;
+  $("air_calc").textContent = fmt(+$("ER").value*ast*feed,1);
+  $("er_calc").textContent = fmt((+$("air").value||0)/(ast*feed),3);
+  $("T_v").textContent = `${$("T").value} °C`; $("ER_v").textContent = (+$("ER").value).toFixed(3);
+  $("g_T").innerHTML = `${$("T").value}<span class="u"> °C</span>`;
+  drawReactor();
+}
+
+/* ------------------------------------------------------------------ econ grid */
+function buildEcon(){
+  const g = $("econGrid"); g.innerHTML = "";
+  for (const [k, lab, u, v] of ECON){
+    g.insertAdjacentHTML("beforeend", `<div class="field"><label>${lab} <span class="unit">(${u})</span></label><input class="inp" type="number" step="any" id="e_${k}" value="${v}"></div>`);
+  }
+}
+
+/* ------------------------------------------------------------------ inputs */
+let airMode = "ER";
+function collect(){
+  const f = getFuel();
+  const econ = {P_design_kWth:+$("P_design_kWth").value, hours:+$("hours").value};
+  for (const [k] of ECON) econ[k] = +$("e_"+k).value;
+  const r = {}; for (const k of Object.keys(REACT_DEF)) r[k] = k==="material" ? $(k).value : +$(k).value;
+  return {
+    feed:{x_rdf:+$("x_rdf").value/100, op:f.op, rdf:f.rdf},
+    op:{T:+$("T").value, P:+$("P").value, feed:+$("feed").value, air_mode:airMode, ER:+$("ER").value, air:+$("air").value, air_T:+$("air_T").value},
+    reactor:r, econ
+  };
+}
+function validate(inp){
+  const e = [];
+  if (!(inp.op.feed > 0)) e.push("Feed rate must be positive.");
+  if (airMode==="flow" && !(inp.op.air > 0)) e.push("Air flow must be positive.");
+  for (const k of ["D","H","W","dp_um","rho_p","tau_char","n_or"]) if (!(inp.reactor[k] > 0)) e.push(`Reactor input “${k}” must be positive.`);
+  if (!(inp.reactor.eps_mf > 0.2 && inp.reactor.eps_mf < 0.8)) e.push("Voidage at minimum fluidization must be between 0.2 and 0.8.");
+  for (const c of ["op","rdf"]){ const d = inp.feed[c]; const s = d.C+d.H+d.N+d.S+d.O+d.Ash;
+    if (!(s > 50)) e.push(`Ultimate analysis of ${c==="op"?"olive pomace":"RDF"} is incomplete.`);
+    if (!(d.M >= 0 && d.M < 60)) e.push("Moisture must be between 0 and 60 wt%."); }
+  if (!(inp.econ.P_design_kWth > 0)) e.push("Heat demand must be positive.");
+  return e;
+}
+function applyPreset(name){
+  const p = PRESETS[name];
+  $("x_rdf").value = p.x; $("T").value = p.T; $("ER").value = p.ER; $("feed").value = p.feed; $("P").value = p.P;
+  document.querySelectorAll("[data-preset]").forEach(b => b.classList.toggle("on", b.dataset.preset===name));
+  setAirMode("ER"); updateDerived();
+}
+function setAirMode(m){
+  airMode = m;
+  document.querySelectorAll("#airMode button").forEach(b => b.classList.toggle("on", b.dataset.m===m));
+  $("erBox").style.display = m==="ER" ? "" : "none"; $("flowBox").style.display = m==="flow" ? "" : "none";
+  if (m==="flow"){ const ast = stoichAir(getFuel(), +$("x_rdf").value/100); $("air").value = (+$("ER").value*ast*(+$("feed").value)).toFixed(1); }
+  updateDerived();
+}
+function resetLab(){
+  buildFuelTable(); buildEcon();
+  for (const [k,v] of Object.entries(REACT_DEF)) $(k).value = v;
+  $("P_design_kWth").value = 209.8; $("hours").value = 7200; $("air_T").value = 25;
+  applyPreset("base"); last = null; showEmpty();
+}
+
+/* ------------------------------------------------------------------ reactor drawing */
+let lastHyd = null;
+function bedColor(T){ // dark red at 600 °C -> orange -> pale yellow at 1150 °C
+  const t = Math.max(0, Math.min(1, (T-600)/550));
+  const a = [190,90,40], b = [245,165,60], c = [252,226,140];
+  const mix = (p,q,s) => p.map((v,i)=>Math.round(v+(q[i]-v)*s));
+  const rgb = t<.5 ? mix(a,b,t*2) : mix(b,c,(t-.5)*2); return `rgb(${rgb.join(",")})`;
+}
+function drawReactor(){
+  const svg = $("reactorSvg"); const T = +$("T").value, x = +$("x_rdf").value;
+  const uu = lastHyd ? lastHyd.U_Umf : 1.6; const dur = Math.max(0.9, 3.6/Math.max(uu,0.6));
+  const glow = bedColor(T);
+  let bubbles = ""; const pos = [[148,0.0,9],[176,0.5,6],[200,1.1,8],[160,1.6,5],[188,2.0,7],[138,0.8,5],[210,0.3,5],[170,2.4,6]];
+  if (!lastHyd || lastHyd.U_Umf > 1) pos.forEach(([cx,dl,r]) => bubbles += `<circle class="bub" cx="${cx}" cy="368" r="${r}" fill="rgba(255,255,255,.75)" stroke="#8a6d45" stroke-width=".8" style="--dur:${dur.toFixed(2)}s;animation-delay:-${(dl*dur/2.4).toFixed(2)}s"/>`);
+  let dust = ""; for (let i=0;i<46;i++){ const px = 122+((i*37)%104), py = 262+((i*53)%112); dust += `<circle cx="${px}" cy="${py}" r="1.3" fill="#7a5a33" opacity=".55"/>`; }
+  let gas = ""; [[160,0],[182,1],[200,2]].forEach(([cx,d]) => gas += `<circle class="gasdot" cx="${cx}" cy="250" r="3" fill="none" stroke="#7d8ea6" style="animation-delay:-${d}s"/>`);
+  svg.innerHTML = `
+  <defs>
+    <linearGradient id="wall" x1="0" x2="1"><stop offset="0" stop-color="#cfd8e3"/><stop offset=".5" stop-color="#f7f9fb"/><stop offset="1" stop-color="#cfd8e3"/></linearGradient>
+    <linearGradient id="bedg" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="${glow}"/><stop offset="1" stop-color="#ecd3a8"/></linearGradient>
+    <marker id="ar" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#4b5869"/></marker>
+  </defs>
+  <line x1="172" y1="36" x2="172" y2="6" stroke="#4b5869" stroke-width="2.2" marker-end="url(#ar)"/>
+  <text x="182" y="20" font-size="13" font-weight="600" fill="#16202e">Syngas</text>
+  <text x="182" y="34" font-size="11" fill="#4b5869" id="svgQ">${last ? fmt(last.Q_dry,1)+" Nm³/h · LHV "+fmt(last.LHV,2)+" MJ/Nm³" : "to burner / boiler"}</text>
+  <rect x="112" y="40" width="120" height="352" rx="60" fill="url(#wall)" stroke="#6b7a8f" stroke-width="2"/>
+  <path d="M114 262 H230 V352 A58 58 0 0 1 114 352 Z" fill="url(#bedg)" stroke="none"/>
+  ${dust}${bubbles}${gas}
+  <line x1="172" y1="240" x2="172" y2="110" stroke="#9aa7b8" stroke-width="1.6" marker-end="url(#ar)"/>
+  <path d="M100 74 h-8 v168 h8" fill="none" stroke="#2a78d6" stroke-width="1.6"/>
+  <text x="20" y="150" font-size="13" font-weight="700" fill="#2a78d6">Freeboard</text>
+  <text x="20" y="166" font-size="11" fill="#2a78d6">(plug flow)</text>
+  <text x="20" y="182" font-size="11" fill="#4b5869">${lastHyd ? "H = "+fmt(lastHyd.H_fb,2)+" m · τ = "+fmt(lastHyd.tau_fb,1)+" s" : ""}</text>
+  <path d="M100 262 h-8 v108 h8" fill="none" stroke="#2a78d6" stroke-width="1.6"/>
+  <text x="14" y="296" font-size="13" font-weight="700" fill="#2a78d6">Bubbling bed</text>
+  <text x="14" y="312" font-size="11" fill="#2a78d6">(two zones)</text>
+  <text x="14" y="328" font-size="11" fill="#4b5869">${T} °C</text>
+  <g transform="translate(30,350)"><rect x="0" y="0" width="74" height="16" rx="3" fill="#8a5a2b"/><rect x="60" y="3" width="56" height="10" fill="#a9763f"/>
+    <text x="-6" y="34" font-size="11" fill="#16202e" font-weight="600">Feedstock</text><text x="-6" y="48" font-size="10.5" fill="#4b5869">OP ${100-x} % · RDF ${x} %</text></g>
+  <line x1="240" y1="276" x2="262" y2="262" stroke="#9aa7b8"/>
+  <text x="264" y="258" font-size="11.5" font-weight="600" fill="#16202e">Bubble phase</text>
+  <text x="264" y="272" font-size="10.5" fill="#4b5869">homogeneous</text><text x="264" y="285" font-size="10.5" fill="#4b5869">oxidation</text>
+  <text x="240" y="308" font-size="11" font-style="italic" fill="#eb6834">gas interchange</text>
+  <line x1="240" y1="340" x2="262" y2="330" stroke="#9aa7b8"/>
+  <text x="264" y="330" font-size="11.5" font-weight="600" fill="#16202e">Emulsion</text>
+  <text x="264" y="344" font-size="10.5" fill="#4b5869">char, ${$("material").value==="dolomite"?"dolomite,":"volatiles,"}</text><text x="264" y="357" font-size="10.5" fill="#4b5869">tar conversion</text>
+  <line x1="172" y1="426" x2="172" y2="396" stroke="#4b5869" stroke-width="2.2" marker-end="url(#ar)"/>
+  <text x="182" y="420" font-size="13" font-weight="600" fill="#16202e">Air</text>
+  <text x="210" y="420" font-size="11" fill="#4b5869">${airMode==="ER" ? "ER "+(+$("ER").value).toFixed(3) : fmt(+$("air").value,1)+" Nm³/h"}</text>`;
+}
+
+/* ------------------------------------------------------------------ charts (plain SVG) */
+const SPC = {H2:"H₂",O2:"O₂",N2:"N₂",CO:"CO",CO2:"CO₂",H2O:"H₂O",CH4:"CH₄",C2H4:"C₂H₄",C3H6:"C₃H₆",C6H6:"C₆H₆",C7H8:"C₇H₈",C6H6O:"C₆H₅OH",C10H8:"C₁₀H₈",Tar:"Tar"};
+function attachTip(host){ let t = host.querySelector(".tip"); if (!t){ t = document.createElement("div"); t.className="tip"; host.appendChild(t);} return t; }
+function hoverize(host){
+  const tip = attachTip(host);
+  host.querySelectorAll("[data-tip]").forEach(el => {
+    el.addEventListener("mousemove", ev => { const r = host.getBoundingClientRect(); tip.innerHTML = el.dataset.tip; tip.style.left = (ev.clientX-r.left)+"px"; tip.style.top = (ev.clientY-r.top)+"px"; tip.style.opacity = 1; });
+    el.addEventListener("mouseleave", () => tip.style.opacity = 0);
+  });
+}
+function niceMax(v){ if (v<=0) return 1; const p = Math.pow(10, Math.floor(Math.log10(v))); for (const m of [1,2,2.5,5,10]) if (v <= m*p) return m*p; return 10*p; }
+function barChart(host, items, opt = {}){
+  // items: [{label, value, color}] vertical bars from zero baseline
+  const W = 560, H = opt.h || 220, L = 40, R = 10, Tm = 14, B = 34;
+  const vals = items.map(i => i.value); const mx = niceMax(Math.max(...vals, 0)), mn = Math.min(0, ...vals);
+  const lo = mn < 0 ? -niceMax(-mn) : 0; const sy = v => Tm + (H-Tm-B)*(1-(v-lo)/(mx-lo));
+  const bw = (W-L-R)/items.length; let s = "";
+  for (let k=0;k<=4;k++){ const v = lo + (mx-lo)*k/4, y = sy(v); s += `<line x1="${L}" x2="${W-R}" y1="${y}" y2="${y}" stroke="#e3e8ef"/><text x="${L-6}" y="${y+4}" font-size="10.5" text-anchor="end" fill="#7a8696">${+v.toFixed(2)}</text>`; }
+  items.forEach((it,i) => {
+    const x = L + i*bw + bw*0.18, w = bw*0.64, y0 = sy(0), y1 = sy(it.value); const top = Math.min(y0,y1), h = Math.max(1, Math.abs(y1-y0));
+    const r = Math.min(4, w/2, h);
+    const path = it.value >= 0 ? `M${x} ${y0} V${top+r} Q${x} ${top} ${x+r} ${top} H${x+w-r} Q${x+w} ${top} ${x+w} ${top+r} V${y0} Z`
+                               : `M${x} ${y0} V${top+h-r} Q${x} ${top+h} ${x+r} ${top+h} H${x+w-r} Q${x+w} ${top+h} ${x+w} ${top+h-r} V${y0} Z`;
+    s += `<path d="${path}" fill="${it.color}"/>`;
+    s += `<rect x="${L+i*bw}" y="${Tm}" width="${bw}" height="${H-Tm-B}" fill="transparent" data-tip="<b>${it.label}</b>: ${fmt(it.value, opt.dec ?? 2)} ${opt.unit||""}"/>`;
+    s += `<text x="${x+w/2}" y="${(it.value>=0? top-4 : top+h+12)}" font-size="10.5" text-anchor="middle" fill="#16202e" font-weight="600">${fmt(it.value, opt.dec ?? 1)}</text>`;
+    s += `<text x="${x+w/2}" y="${H-B+16}" font-size="11" text-anchor="middle" fill="#4b5869">${it.label}</text>`;
+  });
+  s += `<line x1="${L}" x2="${W-R}" y1="${sy(0)}" y2="${sy(0)}" stroke="#9aa7b8"/>`;
+  if (opt.ylab) s += `<text x="10" y="${(H-B+Tm)/2}" font-size="10.5" fill="#7a8696" transform="rotate(-90 10 ${(H-B+Tm)/2})" text-anchor="middle">${opt.ylab}</text>`;
+  host.innerHTML = `<svg viewBox="0 0 ${W} ${H}">${s}</svg>`; hoverize(host);
+}
+function hbarChart(host, items, opt = {}){
+  // horizontal signed bars, total marker
+  const W = 300, rowH = 26, L = 96, R = 46, Tm = 6; const H = Tm + rowH*items.length + 22;
+  const vals = items.map(i=>i.value); const mx = Math.max(...vals.map(v=>Math.abs(v)))*1.05 || 1;
+  const hasNeg = vals.some(v=>v<0); const x0 = hasNeg ? L + (W-L-R)*0.22 : L; const sx = v => x0 + v/mx*(W-R-x0) ;
+  const sxn = v => v>=0 ? sx(v) : x0 + v/mx*(x0-L);
+  let s = `<line x1="${x0}" x2="${x0}" y1="${Tm}" y2="${H-20}" stroke="#9aa7b8"/>`;
+  items.forEach((it,i) => {
+    const y = Tm + i*rowH + 4, h = rowH-9; const xa = Math.min(x0, sxn(it.value)), w = Math.max(1, Math.abs(sxn(it.value)-x0));
+    s += `<rect x="${xa}" y="${y}" width="${w}" height="${h}" rx="3" fill="${it.value<0 ? "#1baf7a" : (it.color||"#2a78d6")}"/>`;
+    s += `<text x="${L-6}" y="${y+h/2+4}" font-size="12" text-anchor="end" fill="#4b5869">${it.label}</text>`;
+    s += `<text x="${it.value<0 ? x0+4 : xa+w+4}" y="${y+h/2+4}" font-size="10.5" text-anchor="start" fill="#16202e" font-weight="600">${fmt(it.value, opt.dec ?? 1)}</text>`;
+    s += `<rect x="0" y="${y-2}" width="${W}" height="${rowH}" fill="transparent" data-tip="<b>${it.label}</b>: ${fmt(it.value, opt.dec ?? 2)} ${opt.unit||""}"/>`;
+  });
+  if (opt.total !== undefined) s += `<text x="${W-4}" y="${H-6}" font-size="11.5" text-anchor="end" fill="#16202e" font-weight="700">${opt.totalLabel}: ${fmt(opt.total, opt.dec ?? 1)} ${opt.unit||""}</text>`;
+  host.innerHTML = `<svg viewBox="0 0 ${W} ${H}">${s}</svg>`; hoverize(host);
+}
+function lineChart(host, xs, series, opt = {}){
+  const W = 900, H = 300, L = 56, R = 70, Tm = 14, B = 40;
+  const all = series.flatMap(s => s.values).filter(v => isFinite(v));
+  let ymin = Math.min(...all), ymax = Math.max(...all); const pad = (ymax-ymin)*0.12 || Math.abs(ymax)*0.1 || 1;
+  ymin = opt.zero && ymin >= 0 ? 0 : ymin - pad; ymax = ymax + pad;
+  const xmin = Math.min(...xs), xmax = Math.max(...xs);
+  const sx = v => L + (W-L-R)*(xmax===xmin ? .5 : (v-xmin)/(xmax-xmin)), sy = v => Tm + (H-Tm-B)*(1-(v-ymin)/(ymax-ymin));
+  let s = "";
+  for (let k=0;k<=4;k++){ const v = ymin+(ymax-ymin)*k/4, y = sy(v); s += `<line x1="${L}" x2="${W-R}" y1="${y}" y2="${y}" stroke="#e3e8ef"/><text x="${L-6}" y="${y+4}" font-size="11" text-anchor="end" fill="#7a8696">${fmt(v, opt.dec ?? 2)}</text>`; }
+  xs.forEach(x => s += `<text x="${sx(x)}" y="${H-B+18}" font-size="11" text-anchor="middle" fill="#7a8696">${fmt(x, opt.xdec ?? 0)}</text>`);
+  s += `<text x="${(L+W-R)/2}" y="${H-4}" font-size="11.5" text-anchor="middle" fill="#4b5869">${opt.xlab||""}</text>`;
+  s += `<text x="14" y="${(H-B+Tm)/2}" font-size="11.5" fill="#4b5869" transform="rotate(-90 14 ${(H-B+Tm)/2})" text-anchor="middle">${opt.ylab||""}</text>`;
+  series.forEach(se => {
+    const pts = xs.map((x,i)=>[sx(x), sy(se.values[i])]).filter(p=>isFinite(p[1]));
+    s += `<polyline points="${pts.map(p=>p.join(",")).join(" ")}" fill="none" stroke="${se.color}" stroke-width="2"/>`;
+    pts.forEach(p => s += `<circle cx="${p[0]}" cy="${p[1]}" r="4.5" fill="${se.color}" stroke="#fff" stroke-width="2"/>`);
+    if (series.length > 1 && pts.length) { const p = pts[pts.length-1]; s += `<text x="${p[0]+9}" y="${p[1]+4}" font-size="11.5" fill="#16202e" font-weight="600">${se.name}</text>`; }
+  });
+  xs.forEach((x,i) => {
+    const tipTxt = `<b>${opt.xlab}: ${fmt(x, opt.xdec ?? 0)}</b><br>` + series.map(se => `${se.name}: ${fmt(se.values[i], opt.dec ?? 2)}`).join("<br>");
+    const bw = (W-L-R)/Math.max(xs.length-1,1);
+    s += `<rect x="${sx(x)-bw/2}" y="${Tm}" width="${bw}" height="${H-Tm-B}" fill="transparent" data-tip="${tipTxt}"/>`;
+  });
+  const legend = series.length > 1 ? `<div class="legend">${series.map(se=>`<span><i style="background:${se.color}"></i>${se.name}</span>`).join("")}</div>` : "";
+  host.innerHTML = legend + `<svg viewBox="0 0 ${W} ${H}">${s}</svg>`; hoverize(host);
+}
+
+/* ------------------------------------------------------------------ results rendering */
+let last = null, lastInp = null, compBasis = "y";
+const COMP_COLORS = {H2:"var(--s1)",CO:"var(--s2)",CO2:"var(--s3)",CH4:"var(--s4)",C2H4:"var(--s5)",C3H6:"var(--s6)",N2:"#9aa7b8",H2O:"#7ab3e6",O2:"#c9ced6",C6H6:"var(--s7)",C7H8:"var(--s7)",C6H6O:"var(--s7)",C10H8:"var(--s7)",Tar:"var(--s7)"};
+function row(label, v, u, d=2){ return `<tr><td>${label}</td><td>${typeof v==="string" ? v : fmt(v,d)}<span class="u">${u||""}</span></td></tr>`; }
+function kpi(k, v, u, d=2, sub=""){ return `<div class="kpi"><div class="k">${k}</div><div class="v mono">${fmt(v,d)}<span class="u">${u}</span></div>${sub?`<div class="d">${sub}</div>`:""}</div>`; }
+function showEmpty(){ $("emptyMsg").style.display=""; $("solBody").style.display="none"; $("cardEnergy").style.display="none"; $("cardTea").style.display="none"; $("btnRecord").disabled = true; lastHyd = null; $("g_U").textContent="–"; $("g_Q").innerHTML = `–<span class="u"> Nm³/h</span>`; drawReactor(); }
+function drawComp(){
+  if (!last) return; const y = last[compBasis];
+  const order = ["H2","CO","CO2","CH4","C2H4","C3H6","N2","H2O"].filter(k => k in y && (y[k] > 1e-4 || ["H2","CO","CO2","CH4"].includes(k)));
+  if (compBasis==="y_wet") { const tar = ["C6H6","C7H8","C6H6O","C10H8","Tar"].reduce((a,k)=>a+(y[k]||0),0); y.__tar = tar; order.push("__tar"); }
+  barChart($("chComp"), order.map(k => ({label: k==="__tar" ? "Tars" : SPC[k], value: y[k], color: k==="__tar" ? "var(--s7)" : COMP_COLORS[k]})), {unit:"vol%", ylab:"vol%", dec:1});
+}
+function render(r, inp){
+  last = r; lastInp = inp; lastHyd = r.hyd;
+  $("emptyMsg").style.display="none"; $("solBody").style.display=""; $("cardEnergy").style.display=""; $("cardTea").style.display="";
+  $("warns").innerHTML = r.warnings.length ? `<div class="warnbox"><b>Check these conditions</b><ul>${r.warnings.map(w=>`<li>${w}</li>`).join("")}</ul></div>` : "";
+  $("kpiGas").innerHTML =
+    kpi("H₂ (dry)", r.y.H2, " vol%", 1) + kpi("CO (dry)", r.y.CO, " vol%", 1) + kpi("CH₄ (dry)", r.y.CH4, " vol%", 1) +
+    kpi("Syngas LHV", r.LHV, " MJ/Nm³", 2) + kpi("Syngas HHV", r.HHV, " MJ/Nm³", 2) + kpi("Cold gas efficiency", r.CGE, " %", 1) +
+    kpi("Dry gas flow", r.Q_dry, " Nm³/h", 1, `${fmt(r.gas_yield,2)} Nm³/kg fuel`) + kpi("Tar yield", r.tar_g_kg, " g/kg", 0, `${fmt(r.tar_g_Nm3,1)} g/Nm³ · indicative`) +
+    kpi("Equivalence ratio", r.ER, "", 3, `air ${fmt(r.air,1)} Nm³/h`);
+  drawComp();
+  const t = r.tars;
+  $("tTar").innerHTML = row("Benzene", t.C6H6, " g/kg",1) + row("Toluene", t.C7H8, " g/kg",1) + row("Phenol", t.C6H6O, " g/kg",1) + row("Naphthalene", t.C10H8, " g/kg",1)
+    + row("Tar without benzene", r.tar_nb_g_kg, " g/kg",1) + row("Char + ash leaving the bed", r.char_g_kg, " g/kg",0);
+  const cl = r.closure;
+  $("tClos").innerHTML = row("Carbon to permanent gas", r.C_gas, " %",1) + row("Fixed-carbon conversion", r.FC_conv, " %",1) + row("O₂ conversion", r.O2_conv, " %",1)
+    + row("Closure C / H", `${fmt(cl.C,2)} / ${fmt(cl.H,2)}`, " %") + row("Closure O / N", `${fmt(cl.O,2)} / ${fmt(cl.N,2)}`, " %") + row("Fuel LHV (as received)", r.LHV_fuel, " MJ/kg",2);
+  const e = r.energy, tea = r.tea, Qb = e.Q_bed_kW;
+  $("tEnergy").innerHTML = `<tr><td colspan="2"><b style="font-size:12.5px">Bed at ${inp.op.T} °C, feed ${fmt(inp.op.feed,1)} kg/h</b></td></tr>`
+    + row("Fuel input (LHV)", e.P_fuel_kW, " kW",1) + row("Chemical energy in syngas", e.P_gas_kW, " kW",1)
+    + row(Qb >= 0 ? "Bed heat surplus" : "Heat demand of the bed", Math.abs(Qb), " kW",2) + row("… per kg fuel", Math.abs(e.Q_bed_MJ_kg), " MJ/kg",3)
+    + `<tr><td colspan="2" style="padding-top:10px"><b style="font-size:12.5px">Heat supply: ${fmt(inp.econ.P_design_kWth,1)} kWth plant</b></td></tr>`
+    + row("Fuel required", tea.feed_kg_h, " kg/h",1) + row("External heat to the bed", tea.Q_ext_kW, " kW",2) + row("Net gas efficiency", tea.eff_net, " %",1)
+    + row("Useful heat", tea.heat, " MWh/y",0);
+  const h = r.hyd;
+  $("tHyd").innerHTML = `<tr><td colspan="2"><b style="font-size:12.5px">Hydrodynamics</b></td></tr>`
+    + row("Superficial velocity U₀", h.U0, " m/s",3) + row("Min. fluidization U<sub>mf</sub>", h.Umf, " m/s",3) + row("U₀ / U<sub>mf</sub>", h.U_Umf, "",2)
+    + row("Bubble diameter", h.d_b*100, " cm",1) + row("Bubble fraction δ", h.delta, "",3) + row("Bed height (fixed / expanded)", `${fmt(h.H_mf,3)} / ${fmt(h.H_f,3)}`, " m")
+    + row("Freeboard height", h.H_fb, " m",2) + row("Gas residence time bed / freeboard", `${fmt(h.tau_bed,2)} / ${fmt(h.tau_fb,2)}`, " s");
+  $("kpiTea").innerHTML = kpi("NPV", tea.NPV, " k€", 1, `${fmt(inp.econ.discount_rate*100,0)} %, ${inp.econ.lifetime} years`) + kpi("IRR", tea.IRR, " %", 1)
+    + kpi("Discounted payback", tea.PB, " years", 0) + kpi("LCOH", tea.LCOH, " €/MWh", 1, `natural gas: ${fmt(tea.p_heat,1)} €/MWh`)
+    + kpi("GWP100", tea.GWP, " kg/MJ", 3, `${fmt(tea.GWP_vs_NG,0)} % vs natural gas`) + kpi("GWP100 net of landfill", tea.GWP_net, " kg/MJ", 3, `abatement cost ${fmt(tea.abat,0)} €/t`);
+  const c = tea.comp;
+  hbarChart($("chLcoh"), [{label:"CAPEX",value:c.capex},{label:"O&M",value:c.om},{label:"Olive pomace",value:c.pomace},{label:"Electricity",value:c.elec},{label:"ETS on CO₂",value:c.co2},{label:"RDF fee avoided",value:c.rdf}],
+    {unit:"€/MWh", total:tea.LCOH, totalLabel:"LCOH"});
+  const g = tea.gwp_parts;
+  hbarChart($("chGwp"), [{label:"Fossil CO₂",value:g.fossil*1000,color:"#eb6834"},{label:"CH₄ slip",value:g.ch4*1000,color:"#eb6834"},{label:"Electricity",value:g.elec*1000,color:"#eb6834"},{label:"Landfill avoided",value:g.landfill*1000}],
+    {unit:"g CO₂-eq/MJ", total:tea.GWP_net*1000, totalLabel:"Net", dec:1});
+  $("tTea").innerHTML = row("CAPEX", tea.CAPEX, " k€",1) + row("Revenue (heat + avoided RDF fee)", tea.rev, " k€/y",1) + row("Operating cost", tea.opex, " k€/y",1)
+    + row("Olive pomace / RDF used", `${fmt(tea.pom_t,0)} / ${fmt(tea.rdf_t,0)}`, " t/y") + row("Fossil share of feed carbon", tea.fossil_C*100, " %",1);
+  $("g_U").textContent = fmt(h.U_Umf,2); $("g_Q").innerHTML = `${fmt(r.Q_dry,1)}<span class="u"> Nm³/h</span>`;
+  $("btnRecord").disabled = false; drawReactor();
+}
+
+/* ------------------------------------------------------------------ run log */
+const LOG_COLS = [["#","n",0],["RDF (%)","x",0],["T (°C)","T",0],["ER","ER",3],["Feed (kg/h)","feed",1],["Bed","mat",null],
+  ["H₂","H2",1],["CO","CO",1],["CO₂","CO2",1],["CH₄","CH4",1],["C₂+","C2",1],["N₂","N2",1],["LHV (MJ/Nm³)","LHV",2],["HHV (MJ/Nm³)","HHV",2],["CGE (%)","CGE",1],
+  ["Tar (g/kg)","tar",0],["U₀/Umf","UU",2],["Q bed (kW)","Qb",2],["Fuel for plant (kg/h)","fp",1],["NPV (k€)","NPV",1],["IRR (%)","IRR",1],["LCOH (€/MWh)","LCOH",1],["GWP (kg/MJ)","GWP",3],["GWP net (kg/MJ)","GWPn",3]];
+let LOG = [];
+try { LOG = JSON.parse(localStorage.getItem("bfb_log") || "[]"); } catch(e) { LOG = []; }
+function saveLog(){ try { localStorage.setItem("bfb_log", JSON.stringify(LOG)); } catch(e) {} }
+function logEntry(r, inp){
+  return {n:LOG.length+1, x:inp.feed.x_rdf*100, T:inp.op.T, ER:r.ER, feed:inp.op.feed, mat:inp.reactor.material.replace("_"," "),
+    H2:r.y.H2, CO:r.y.CO, CO2:r.y.CO2, CH4:r.y.CH4, C2:(r.y.C2H4||0)+(r.y.C3H6||0), N2:r.y.N2, LHV:r.LHV, HHV:r.HHV, CGE:r.CGE, tar:r.tar_g_kg,
+    UU:r.hyd.U_Umf, Qb:r.energy.Q_bed_kW, fp:r.tea.feed_kg_h, NPV:r.tea.NPV, IRR:r.tea.IRR, LCOH:r.tea.LCOH, GWP:r.tea.GWP, GWPn:r.tea.GWP_net};
+}
+function renderLog(){
+  $("logTable").querySelector("thead").innerHTML = "<tr>" + LOG_COLS.map(c=>`<th>${c[0]}</th>`).join("") + "</tr><tr style='display:none'></tr>";
+  const tb = $("logTable").querySelector("tbody");
+  tb.innerHTML = LOG.length ? LOG.map(e => "<tr>" + LOG_COLS.map(c => `<td>${c[2]===null ? e[c[1]] : fmt(e[c[1]], c[2])}</td>`).join("") + "</tr>").join("")
+                            : `<tr><td colspan="${LOG_COLS.length}" style="text-align:center;color:var(--muted);padding:16px">No runs recorded yet. Composition columns are vol% (dry, tar-free).</td></tr>`;
+  $("nRuns").textContent = `${LOG.length} run${LOG.length===1?"":"s"}`;
+}
+function addToLog(r, inp){ LOG.push(logEntry(r, inp)); saveLog(); renderLog(); }
+function csv(){
+  const head = LOG_COLS.map(c => c[0].replace(/[₀-₉]/g, d => "0123456789"["₀₁₂₃₄₅₆₇₈₉".indexOf(d)]));
+  return [head.join(",")].concat(LOG.map(e => LOG_COLS.map(c => c[2]===null ? `"${e[c[1]]}"` : (isFinite(e[c[1]]) ? (+e[c[1]]).toFixed(Math.max(c[2],3)) : "")).join(","))).join("\n");
+}
+
+/* ------------------------------------------------------------------ engine (Pyodide in a Web Worker, fallback main thread) */
+const PY_SETUP = () => ({core:$("py-core").textContent, api:$("py-api").textContent, net:$("js-net").textContent, reg:$("js-reg").textContent});
+const WORKER_SRC = `
+let py=null;
+self.onmessage = async (ev) => {
+  const m = ev.data;
+  try {
+    if (m.type==="init"){
+      importScripts(m.url + "pyodide.js");
+      py = await loadPyodide({indexURL:m.url});
+      self.postMessage({type:"status", txt:"Loading NumPy and SciPy…"});
+      await py.loadPackage(["numpy","scipy"]);
+      py.FS.writeFile("bfb_core.py", m.files.core); py.FS.writeFile("bfb_api.py", m.files.api);
+      py.FS.writeFile("active_network.json", m.files.net); py.FS.writeFile("species_registry.json", m.files.reg);
+      self.postMessage({type:"status", txt:"Compiling the kinetic model…"});
+      py.runPython("import sys; sys.path.insert(0,'.'); import bfb_api");
+      self.postMessage({type:"ready"});
+    } else if (m.type==="run"){
+      py.globals.set("INP", m.inp);
+      const out = py.runPython("bfb_api." + (m.fn || "run") + "(INP)");
+      self.postMessage({type:"result", id:m.id, out});
+    }
+  } catch(e){ self.postMessage({type:"error", id:m.id, msg:String(e && e.message || e)}); }
+};`;
+function showEngineError(msg){
+  const box = $("runInfo"); if (!box) return;
+  box.innerHTML = `<div class="errbox"><b>The model engine reported an error.</b><br>${String(msg).replace(/[<>&]/g, c => ({"<":"&lt;",">":"&gt;","&":"&amp;"}[c])).slice(0, 600)}<br>Reload the page; if it persists, try another browser (Chrome, Edge or Firefox, desktop).</div>`;
+}
+window.addEventListener("error", e => { if (!Engine.ready) showEngineError(e.message || e); });
+window.addEventListener("unhandledrejection", e => { if (!Engine.ready) showEngineError((e.reason && e.reason.message) || e.reason); });
+const Engine = {
+  ready:false, worker:null, py:null, pending:{}, seq:0,
+  setStatus(txt, st){ $("engTxt").textContent = txt; $("engDot").className = "dot" + (st ? " "+st : ""); },
+  async init(){
+    setTimeout(() => { if (!this.ready && !this.failed) $("runInfo").innerHTML = "The first load downloads Python, NumPy and SciPy (~30 MB) and can take one or two minutes on a slow connection. Keep this tab open."; }, 20000);
+    try { await this.initWorker(); }
+    catch(e){ console.warn("Worker failed, using main thread:", e); try { this.worker && this.worker.terminate(); } catch(_) {} this.worker = null; await this.initMain(); }
+  },
+  initWorker(){
+    return new Promise((resolve, reject) => {
+      let w; try { w = new Worker(URL.createObjectURL(new Blob([WORKER_SRC], {type:"text/javascript"}))); } catch(e){ return reject(e); }
+      this.worker = w; let done = false;
+      w.onmessage = (ev) => {
+        const m = ev.data;
+        if (m.type==="status") this.setStatus(m.txt);
+        else if (m.type==="ready"){ done = true; this.onReady(); resolve(); }
+        else if (m.type==="result"){ const p = this.pending[m.id]; delete this.pending[m.id]; p && p.res(m.out); }
+        else if (m.type==="error"){ if (!done){ done = true; w.terminate(); reject(new Error(m.msg)); } else { const p = this.pending[m.id]; delete this.pending[m.id]; p && p.rej(new Error(m.msg)); } }
+      };
+      w.onerror = (e) => { if (!done){ done = true; w.terminate(); reject(e); } };
+      this.setStatus("Loading Python (Pyodide)…");
+      w.postMessage({type:"init", url:PYODIDE_URL, files:PY_SETUP()});
+    });
+  },
+  async initMain(){
+    try {
+      this.setStatus("Loading Python (Pyodide)…");
+      await new Promise((res, rej) => { const s = document.createElement("script"); s.src = PYODIDE_URL + "pyodide.js"; s.onload = res; s.onerror = () => rej(new Error("Could not load Pyodide from the CDN.")); document.head.appendChild(s); });
+      this.py = await loadPyodide({indexURL:PYODIDE_URL});
+      this.setStatus("Loading NumPy and SciPy…"); await this.py.loadPackage(["numpy","scipy"]);
+      const f = PY_SETUP();
+      this.py.FS.writeFile("bfb_core.py", f.core); this.py.FS.writeFile("bfb_api.py", f.api);
+      this.py.FS.writeFile("active_network.json", f.net); this.py.FS.writeFile("species_registry.json", f.reg);
+      this.setStatus("Compiling the kinetic model…");
+      this.py.runPython("import sys; sys.path.insert(0,'.'); import bfb_api");
+      this.onReady();
+    } catch(e){
+      this.failed = true; this.setStatus("Engine failed to load", "err");
+      $("runTxt").textContent = "Model unavailable"; $("runInfo").innerHTML = `<div class="errbox">The Python engine could not be loaded (${e.message}). Check your internet connection and reload the page.</div>`;
+    }
+  },
+  onReady(){ this.ready = true; this.setStatus("Model ready", "ok"); $("btnRun").disabled = false; $("btnSweep").disabled = false; $("runTxt").textContent = "Run model"; },
+  run(inp, fn = "run"){
+    const s = JSON.stringify(inp);
+    if (this.worker){ const id = ++this.seq; return new Promise((res, rej) => { this.pending[id] = {res, rej}; this.worker.postMessage({type:"run", id, inp:s, fn}); }).then(o => JSON.parse(o)); }
+    return new Promise((res, rej) => setTimeout(() => { try { this.py.globals.set("INP", s); res(JSON.parse(this.py.runPython("bfb_api." + fn + "(INP)"))); } catch(e){ rej(e); } }, 30));
+  }
+};
+
+/* ------------------------------------------------------------------ actions */
+let busy = false;
+function setBusy(b, btn){ busy = b; ["btnRun","btnSweep"].forEach(id => $(id).disabled = b || !Engine.ready); btn && btn.classList.toggle("busy", b); }
+function animProgress(el, secs){ el.style.display = ""; const bar = el.firstElementChild; bar.style.transition = "none"; bar.style.width = "0"; requestAnimationFrame(() => { bar.style.transition = `width ${secs}s cubic-bezier(.2,.6,.4,1)`; bar.style.width = "92%"; }); }
+let avgRun = 12;
+async function runOnce(){
+  if (busy) return; const inp = collect(); const errs = validate(inp);
+  if (errs.length){ $("runInfo").innerHTML = `<div class="errbox">${errs.join("<br>")}</div>`; return; }
+  setBusy(true, $("btnRun")); $("runTxt").textContent = "Solving…"; $("runInfo").textContent = "Solving devolatilization, two-zone bed and freeboard…";
+  animProgress($("runProg"), avgRun); const t0 = performance.now();
+  try {
+    const r = await Engine.run(inp); const dt = (performance.now()-t0)/1000; avgRun = 0.5*avgRun + 0.5*dt;
+    render(r, inp); $("runInfo").textContent = `Solved in ${dt.toFixed(1)} s. Press “Record run” to add it to the data table.`;
+  } catch(e){ $("runInfo").innerHTML = `<div class="errbox">The model did not converge for these inputs: ${e.message}</div>`; }
+  $("runProg").firstElementChild.style.width = "100%"; setTimeout(() => $("runProg").style.display = "none", 400);
+  $("runTxt").textContent = "Run model"; setBusy(false, $("btnRun"));
+}
+let SWEEP = null;
+async function runSweep(){
+  if (busy) return; const v = $("swVar").value, a = +$("swFrom").value, b = +$("swTo").value, n = Math.max(2, Math.min(15, Math.round(+$("swN").value)));
+  const base = collect(); const errs = validate(base); if (errs.length){ toast(errs[0]); return; }
+  const xs = Array.from({length:n}, (_,i) => a + (b-a)*i/(n-1));
+  setBusy(true, $("btnSweep")); const prog = $("swProg"); prog.style.display=""; const bar = prog.firstElementChild; bar.style.transition = "width .3s"; bar.style.width = "0";
+  const res = [];
+  for (let i=0;i<n;i++){
+    const inp = JSON.parse(JSON.stringify(base));
+    if (v==="T") inp.op.T = xs[i]; else if (v==="ER"){ inp.op.air_mode = "ER"; inp.op.ER = xs[i]; } else inp.feed.x_rdf = xs[i]/100;
+    $("btnSweep").querySelector("span:last-child").textContent = `Point ${i+1} / ${n}`;
+    try { const r = await Engine.run(inp); res.push(r); addToLog(r, inp); } catch(e){ res.push(null); }
+    bar.style.width = `${100*(i+1)/n}%`;
+  }
+  SWEEP = {v, xs, res}; drawSweep();
+  $("btnSweep").querySelector("span:last-child").textContent = "Run sweep"; setBusy(false, $("btnSweep")); setTimeout(()=>prog.style.display="none", 600);
+}
+function drawSweep(){
+  if (!SWEEP) return; const {v, xs, res} = SWEEP; const m = $("swMetric").value;
+  const xlab = {T:"Bed temperature (°C)", ER:"Equivalence ratio", x_rdf:"RDF fraction (%)"}[v]; const xdec = v==="ER" ? 3 : 0;
+  const g = f => res.map(r => r ? f(r) : NaN);
+  if (m==="comp") lineChart($("chSweep"), xs, [["H2","H₂","var(--s1)"],["CO","CO","var(--s2)"],["CO2","CO₂","var(--s3)"],["CH4","CH₄","#c98500"]].map(([k,n,c]) => ({name:n, color:c, values:g(r=>r.y[k])})), {xlab, ylab:"vol% (dry)", dec:1, xdec, zero:true});
+  else {
+    const M = {LHV:["Syngas LHV (MJ/Nm³)", r=>r.LHV, 2], CGE:["Cold gas efficiency (%)", r=>r.CGE, 1], tar:["Tar yield (g/kg)", r=>r.tar_g_kg, 0], NPV:["NPV (k€)", r=>r.tea.NPV, 1], LCOH:["LCOH (€/MWh)", r=>r.tea.LCOH, 1], GWP:["GWP100 (kg CO₂-eq/MJ)", r=>r.tea.GWP, 3]}[m];
+    lineChart($("chSweep"), xs, [{name:M[0], color:"var(--s1)", values:g(M[1])}], {xlab, ylab:M[0], dec:M[2], xdec});
+  }
+}
+
+/* ------------------------------------------------------------------ wiring */
+document.addEventListener("DOMContentLoaded", () => {
+  buildFuelTable(); buildEcon(); renderLog(); updateDerived(); drawReactor();
+  ["x_rdf","T","ER","feed","air"].forEach(id => $(id).addEventListener("input", () => { updateDerived(); document.querySelectorAll("[data-preset]").forEach(b=>b.classList.remove("on")); }));
+  $("material").addEventListener("change", e => { $("rho_p").value = RHO_BY_MAT[e.target.value]; drawReactor(); });
+  document.querySelectorAll("#airMode button").forEach(b => b.addEventListener("click", () => setAirMode(b.dataset.m)));
+  document.querySelectorAll("[data-preset]").forEach(b => b.addEventListener("click", () => applyPreset(b.dataset.preset)));
+  document.querySelectorAll("#compBasis button").forEach(b => b.addEventListener("click", () => { compBasis = b.dataset.b; document.querySelectorAll("#compBasis button").forEach(x=>x.classList.toggle("on", x===b)); drawComp(); }));
+  $("swVar").addEventListener("change", e => { const d = {T:[700,1100,5], ER:[0.2,0.4,5], x_rdf:[10,50,5]}[e.target.value]; $("swFrom").value = d[0]; $("swTo").value = d[1]; $("swN").value = d[2]; });
+  $("swMetric").addEventListener("change", drawSweep);
+  $("btnRun").addEventListener("click", runOnce);
+  $("btnSweep").addEventListener("click", runSweep);
+  $("btnRecord").addEventListener("click", () => { if (last){ addToLog(last, lastInp); toast("Run recorded in the data table"); } });
+  $("btnClear").addEventListener("click", () => { if (!LOG.length) return; if ($("btnClear").dataset.arm){ LOG = []; saveLog(); renderLog(); delete $("btnClear").dataset.arm; $("btnClear").textContent = "Clear"; } else { $("btnClear").dataset.arm = 1; $("btnClear").textContent = "Click again to clear"; setTimeout(()=>{ delete $("btnClear").dataset.arm; $("btnClear").textContent="Clear"; }, 3000); } });
+  $("btnCsv").addEventListener("click", async () => { try { await navigator.clipboard.writeText(csv()); toast("CSV copied to the clipboard"); } catch(e){ toast("Clipboard not available in this viewer"); } });
+  $("btnPrint").addEventListener("click", () => { try { window.print(); } catch(e){ toast("Printing is not available in this viewer"); } });
+  $("btnReset").addEventListener("click", resetLab);
+  $("btnHelp").addEventListener("click", () => $("helpModal").classList.add("on"));
+  $("btnHelpClose").addEventListener("click", () => $("helpModal").classList.remove("on"));
+  $("helpModal").addEventListener("click", e => { if (e.target.id==="helpModal") $("helpModal").classList.remove("on"); });
+  Engine.init();
+});
+</script>
+</body>
+</html>
