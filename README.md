@@ -2,7 +2,7 @@
 
 Open-source kinetic model of the air co-gasification of olive pomace and refuse-derived fuel (RDF) in a bubbling fluidized bed (BFB), with techno-economic and carbon-footprint (GWP100) assessment.
 
-> Chuquín-Vasco, D., Lo-Iacono-Ferreira, V. G., Terrados-Cristos, M., Carmo-Calado, L., Torregrosa-López, J. I. Open-source kinetic modeling of olive pomace–RDF co-gasification in a bubbling fluidized bed: validation, techno-economic and carbon-footprint assessment. *Biomass and Bioenergy* (submitted).
+> Chuquín-Vasco, D., Lo-Iacono-Ferreira, V. G., Terrados-Cristos, M., Carmo-Calado, L., Torregrosa-López, J. I. Open-source kinetic modeling of olive pomace–RDF co-gasification in a bubbling fluidized bed: validation, techno-economic and carbon-footprint assessment.
 
 ## Web app
 
