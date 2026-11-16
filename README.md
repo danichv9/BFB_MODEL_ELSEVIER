@@ -28,7 +28,7 @@ Python ≥ 3.10 with `numpy`, `scipy`, `pandas` and `matplotlib`. Open `model/BF
 
 ## Limitations
 
-Tar yields are calibrated only for dolomite beds of the reference case and are indicative elsewhere. Results outside 700–1100 °C and ER 0.20–0.40 are extrapolations.
+Tar yields are calibrated only for dolomite beds of the reference case and are indicative elsewhere.
 
 ## Authors
 
